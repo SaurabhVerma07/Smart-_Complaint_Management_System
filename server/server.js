@@ -19,6 +19,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// API Routes
+app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/complaints', require('./src/routes/complaintRoutes'));
+
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
