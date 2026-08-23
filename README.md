@@ -1,33 +1,140 @@
-# Smart Complaint Management System (SCMS)
+# accepts
 
-A web-based platform for citizens to report civic issues and for municipal authorities to efficiently manage, assign, and resolve them.
+[![NPM Version][npm-version-image]][npm-url]
+[![NPM Downloads][npm-downloads-image]][npm-url]
+[![Node.js Version][node-version-image]][node-version-url]
+[![Build Status][github-actions-ci-image]][github-actions-ci-url]
+[![Test Coverage][coveralls-image]][coveralls-url]
 
-## Tech Stack
-- **Frontend Framework:** React (Vite)
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React
-- **Routing:** React Router
+Higher level content negotiation based on [negotiator](https://www.npmjs.com/package/negotiator).
+Extracted from [koa](https://www.npmjs.com/package/koa) for general use.
 
-## Folder Structure Overview
-- `/src/components` - Reusable UI components (DataTable, Modal, StatusBadge, etc.)
-- `/src/context` - Global state management (AuthContext, ToastContext)
-- `/src/data` - Mock data mimicking a backend database
-- `/src/layouts` - Layout wrappers for different user roles
-- `/src/pages` - Page-level components organized by role (`/admin`, `/staff`, `/user`, `/auth`, `/shared`)
-- `/src/routes` - Application routing logic
-- `/src/utils` - Reusable utility functions (validation, date formatting, status styling)
+In addition to negotiator, it allows:
 
-## How to Run Locally
-1. Ensure you have Node.js installed.
-2. Run `npm install` to install dependencies.
-3. Run `npm run dev` to start the development server.
-4. Navigate to the local URL provided by Vite (usually `http://localhost:5173`).
+- Allows types as an array or arguments list, ie `(['text/html', 'application/json'])`
+  as well as `('text/html', 'application/json')`.
+- Allows type shorthands such as `json`.
+- Returns `false` when no types match
+- Treats non-existent headers as `*`
 
-## Current Status
-**Frontend complete with mock data — backend/database integration in progress.**
+## Installation
 
-## User Roles
-The system currently supports three distinct roles. You can test each role using the demo credentials provided on the login page.
-1. **Citizen (User):** Can submit new complaints, track the status of their submitted complaints, and manage their profile.
-2. **Staff (Resolver):** Can view complaints assigned to them and update their status (e.g., from 'In Progress' to 'Resolved').
-3. **Admin:** Has a comprehensive overview of all complaints. Can manage staff members, manage categories, and assign complaints to specific staff.
+This is a [Node.js](https://nodejs.org/en/) module available through the
+[npm registry](https://www.npmjs.com/). Installation is done using the
+[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
+
+```sh
+$ npm install accepts
+```
+
+## API
+
+```js
+var accepts = require('accepts')
+```
+
+### accepts(req)
+
+Create a new `Accepts` object for the given `req`.
+
+#### .charset(charsets)
+
+Return the first accepted charset. If nothing in `charsets` is accepted,
+then `false` is returned.
+
+#### .charsets()
+
+Return the charsets that the request accepts, in the order of the client's
+preference (most preferred first).
+
+#### .encoding(encodings)
+
+Return the first accepted encoding. If nothing in `encodings` is accepted,
+then `false` is returned.
+
+#### .encodings()
+
+Return the encodings that the request accepts, in the order of the client's
+preference (most preferred first).
+
+#### .language(languages)
+
+Return the first accepted language. If nothing in `languages` is accepted,
+then `false` is returned.
+
+#### .languages()
+
+Return the languages that the request accepts, in the order of the client's
+preference (most preferred first).
+
+#### .type(types)
+
+Return the first accepted type (and it is returned as the same text as what
+appears in the `types` array). If nothing in `types` is accepted, then `false`
+is returned.
+
+The `types` array can contain full MIME types or file extensions. Any value
+that is not a full MIME type is passed to `require('mime-types').lookup`.
+
+#### .types()
+
+Return the types that the request accepts, in the order of the client's
+preference (most preferred first).
+
+## Examples
+
+### Simple type negotiation
+
+This simple example shows how to use `accepts` to return a different typed
+respond body based on what the client wants to accept. The server lists it's
+preferences in order and will get back the best match between the client and
+server.
+
+```js
+var accepts = require('accepts')
+var http = require('http')
+
+function app (req, res) {
+  var accept = accepts(req)
+
+  // the order of this list is significant; should be server preferred order
+  switch (accept.type(['json', 'html'])) {
+    case 'json':
+      res.setHeader('Content-Type', 'application/json')
+      res.write('{"hello":"world!"}')
+      break
+    case 'html':
+      res.setHeader('Content-Type', 'text/html')
+      res.write('<b>hello, world!</b>')
+      break
+    default:
+      // the fallback is text/plain, so no need to specify it above
+      res.setHeader('Content-Type', 'text/plain')
+      res.write('hello, world!')
+      break
+  }
+
+  res.end()
+}
+
+http.createServer(app).listen(3000)
+```
+
+You can test this out with the cURL program:
+```sh
+curl -I -H'Accept: text/html' http://localhost:3000/
+```
+
+## License
+
+[MIT](LICENSE)
+
+[coveralls-image]: https://badgen.net/coveralls/c/github/jshttp/accepts/master
+[coveralls-url]: https://coveralls.io/r/jshttp/accepts?branch=master
+[github-actions-ci-image]: https://badgen.net/github/checks/jshttp/accepts/master?label=ci
+[github-actions-ci-url]: https://github.com/jshttp/accepts/actions/workflows/ci.yml
+[node-version-image]: https://badgen.net/npm/node/accepts
+[node-version-url]: https://nodejs.org/en/download
+[npm-downloads-image]: https://badgen.net/npm/dm/accepts
+[npm-url]: https://npmjs.org/package/accepts
+[npm-version-image]: https://badgen.net/npm/v/accepts
