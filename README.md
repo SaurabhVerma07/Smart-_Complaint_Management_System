@@ -1,140 +1,198 @@
-# accepts
+<h1 align="center">
+  <img alt="Standard Schema fire logo" loading="lazy" width="50" height="50" decoding="async" data-nimg="1" style="color:transparent" src="https://standardschema.dev/favicon.svg">
+  </br>
+  Standard Schema</h1>
+<p align="center">
+  A family of specs for interoperable TypeScript
+  <br/>
+  <a href="https://standardschema.dev">standardschema.dev</a>
+</p>
+<br/>
 
-[![NPM Version][npm-version-image]][npm-url]
-[![NPM Downloads][npm-downloads-image]][npm-url]
-[![Node.js Version][node-version-image]][node-version-url]
-[![Build Status][github-actions-ci-image]][github-actions-ci-url]
-[![Test Coverage][coveralls-image]][coveralls-url]
+<!-- start -->
 
-Higher level content negotiation based on [negotiator](https://www.npmjs.com/package/negotiator).
-Extracted from [koa](https://www.npmjs.com/package/koa) for general use.
+The Standard Schema project is a set of interfaces that standardize the provision and consumption of shared functionality in the TypeScript ecosystem.
 
-In addition to negotiator, it allows:
+Its goal is to allow tools to accept a single input that includes all the types and capabilities they need— no library-specific adapters, no extra dependencies. The result is an ecosystem that's fair for implementers, friendly for consumers, and open for end users.
 
-- Allows types as an array or arguments list, ie `(['text/html', 'application/json'])`
-  as well as `('text/html', 'application/json')`.
-- Allows type shorthands such as `json`.
-- Returns `false` when no types match
-- Treats non-existent headers as `*`
+## The specifications
 
-## Installation
+The specifications can be found below in their entirety. Libraries wishing to implement a spec can copy/paste the code block below into their codebase. They're also available at `@standard-schema/spec` on [npm](https://www.npmjs.com/package/@standard-schema/spec) and [JSR](https://jsr.io/@standard-schema/spec).
 
-This is a [Node.js](https://nodejs.org/en/) module available through the
-[npm registry](https://www.npmjs.com/). Installation is done using the
-[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
+```ts
+// #########################
+// ###   Standard Typed  ###
+// #########################
 
-```sh
-$ npm install accepts
-```
-
-## API
-
-```js
-var accepts = require('accepts')
-```
-
-### accepts(req)
-
-Create a new `Accepts` object for the given `req`.
-
-#### .charset(charsets)
-
-Return the first accepted charset. If nothing in `charsets` is accepted,
-then `false` is returned.
-
-#### .charsets()
-
-Return the charsets that the request accepts, in the order of the client's
-preference (most preferred first).
-
-#### .encoding(encodings)
-
-Return the first accepted encoding. If nothing in `encodings` is accepted,
-then `false` is returned.
-
-#### .encodings()
-
-Return the encodings that the request accepts, in the order of the client's
-preference (most preferred first).
-
-#### .language(languages)
-
-Return the first accepted language. If nothing in `languages` is accepted,
-then `false` is returned.
-
-#### .languages()
-
-Return the languages that the request accepts, in the order of the client's
-preference (most preferred first).
-
-#### .type(types)
-
-Return the first accepted type (and it is returned as the same text as what
-appears in the `types` array). If nothing in `types` is accepted, then `false`
-is returned.
-
-The `types` array can contain full MIME types or file extensions. Any value
-that is not a full MIME type is passed to `require('mime-types').lookup`.
-
-#### .types()
-
-Return the types that the request accepts, in the order of the client's
-preference (most preferred first).
-
-## Examples
-
-### Simple type negotiation
-
-This simple example shows how to use `accepts` to return a different typed
-respond body based on what the client wants to accept. The server lists it's
-preferences in order and will get back the best match between the client and
-server.
-
-```js
-var accepts = require('accepts')
-var http = require('http')
-
-function app (req, res) {
-  var accept = accepts(req)
-
-  // the order of this list is significant; should be server preferred order
-  switch (accept.type(['json', 'html'])) {
-    case 'json':
-      res.setHeader('Content-Type', 'application/json')
-      res.write('{"hello":"world!"}')
-      break
-    case 'html':
-      res.setHeader('Content-Type', 'text/html')
-      res.write('<b>hello, world!</b>')
-      break
-    default:
-      // the fallback is text/plain, so no need to specify it above
-      res.setHeader('Content-Type', 'text/plain')
-      res.write('hello, world!')
-      break
-  }
-
-  res.end()
+/** The Standard Typed interface. This is a base type extended by other specs. */
+export interface StandardTypedV1<Input = unknown, Output = Input> {
+  /** The Standard properties. */
+  readonly "~standard": StandardTypedV1.Props<Input, Output>;
 }
 
-http.createServer(app).listen(3000)
+export declare namespace StandardTypedV1 {
+  /** The Standard Typed properties interface. */
+  export interface Props<Input = unknown, Output = Input> {
+    /** The version number of the standard. */
+    readonly version: 1;
+    /** The vendor name of the schema library. */
+    readonly vendor: string;
+    /** Inferred types associated with the schema. */
+    readonly types?: Types<Input, Output> | undefined;
+  }
+
+  /** The Standard Typed types interface. */
+  export interface Types<Input = unknown, Output = Input> {
+    /** The input type of the schema. */
+    readonly input: Input;
+    /** The output type of the schema. */
+    readonly output: Output;
+  }
+
+  /** Infers the input type of a Standard Typed. */
+  export type InferInput<Schema extends StandardTypedV1> = NonNullable<
+    Schema["~standard"]["types"]
+  >["input"];
+
+  /** Infers the output type of a Standard Typed. */
+  export type InferOutput<Schema extends StandardTypedV1> = NonNullable<
+    Schema["~standard"]["types"]
+  >["output"];
+}
+
+// ##########################
+// ###   Standard Schema  ###
+// ##########################
+
+/** The Standard Schema interface. */
+export interface StandardSchemaV1<Input = unknown, Output = Input> {
+  /** The Standard Schema properties. */
+  readonly "~standard": StandardSchemaV1.Props<Input, Output>;
+}
+
+export declare namespace StandardSchemaV1 {
+  /** The Standard Schema properties interface. */
+  export interface Props<Input = unknown, Output = Input>
+    extends StandardTypedV1.Props<Input, Output> {
+    /** Validates unknown input values. */
+    readonly validate: (
+      value: unknown,
+      options?: StandardSchemaV1.Options | undefined
+    ) => Result<Output> | Promise<Result<Output>>;
+  }
+
+  /** The result interface of the validate function. */
+  export type Result<Output> = SuccessResult<Output> | FailureResult;
+
+  /** The result interface if validation succeeds. */
+  export interface SuccessResult<Output> {
+    /** The typed output value. */
+    readonly value: Output;
+    /** A falsy value for `issues` indicates success. */
+    readonly issues?: undefined;
+  }
+
+  export interface Options {
+    /** Explicit support for additional vendor-specific parameters, if needed. */
+    readonly libraryOptions?: Record<string, unknown> | undefined;
+  }
+
+  /** The result interface if validation fails. */
+  export interface FailureResult {
+    /** The issues of failed validation. */
+    readonly issues: ReadonlyArray<Issue>;
+  }
+
+  /** The issue interface of the failure output. */
+  export interface Issue {
+    /** The error message of the issue. */
+    readonly message: string;
+    /** The path of the issue, if any. */
+    readonly path?: ReadonlyArray<PropertyKey | PathSegment> | undefined;
+  }
+
+  /** The path segment interface of the issue. */
+  export interface PathSegment {
+    /** The key representing a path segment. */
+    readonly key: PropertyKey;
+  }
+
+  /** The Standard types interface. */
+  export interface Types<Input = unknown, Output = Input>
+    extends StandardTypedV1.Types<Input, Output> {}
+
+  /** Infers the input type of a Standard. */
+  export type InferInput<Schema extends StandardTypedV1> =
+    StandardTypedV1.InferInput<Schema>;
+
+  /** Infers the output type of a Standard. */
+  export type InferOutput<Schema extends StandardTypedV1> =
+    StandardTypedV1.InferOutput<Schema>;
+}
+
+// ###############################
+// ###   Standard JSON Schema  ###
+// ###############################
+
+/** The Standard JSON Schema interface. */
+export interface StandardJSONSchemaV1<Input = unknown, Output = Input> {
+  /** The Standard JSON Schema properties. */
+  readonly "~standard": StandardJSONSchemaV1.Props<Input, Output>;
+}
+
+export declare namespace StandardJSONSchemaV1 {
+  /** The Standard JSON Schema properties interface. */
+  export interface Props<Input = unknown, Output = Input>
+    extends StandardTypedV1.Props<Input, Output> {
+    /** Methods for generating the input/output JSON Schema. */
+    readonly jsonSchema: StandardJSONSchemaV1.Converter;
+  }
+
+  /** The Standard JSON Schema converter interface. */
+  export interface Converter {
+    /** Converts the input type to JSON Schema. May throw if conversion is not supported. */
+    readonly input: (
+      options: StandardJSONSchemaV1.Options
+    ) => Record<string, unknown>;
+    /** Converts the output type to JSON Schema. May throw if conversion is not supported. */
+    readonly output: (
+      options: StandardJSONSchemaV1.Options
+    ) => Record<string, unknown>;
+  }
+
+  /**
+   * The target version of the generated JSON Schema.
+   *
+   * It is *strongly recommended* that implementers support `"draft-2020-12"` and `"draft-07"`, as they are both in wide use. All other targets can be implemented on a best-effort basis. Libraries should throw if they don't support a specified target.
+   *
+   * The `"openapi-3.0"` target is intended as a standardized specifier for OpenAPI 3.0 which is a superset of JSON Schema `"draft-04"`.
+   */
+  export type Target =
+    | "draft-2020-12"
+    | "draft-07"
+    | "openapi-3.0"
+    // Accepts any string for future targets while preserving autocomplete
+    | ({} & string);
+
+  /** The options for the input/output methods. */
+  export interface Options {
+    /** Specifies the target version of the generated JSON Schema. Support for all versions is on a best-effort basis. If a given version is not supported, the library should throw. */
+    readonly target: Target;
+
+    /** Explicit support for additional vendor-specific parameters, if needed. */
+    readonly libraryOptions?: Record<string, unknown> | undefined;
+  }
+
+  /** The Standard types interface. */
+  export interface Types<Input = unknown, Output = Input>
+    extends StandardTypedV1.Types<Input, Output> {}
+
+  /** Infers the input type of a Standard. */
+  export type InferInput<Schema extends StandardTypedV1> =
+    StandardTypedV1.InferInput<Schema>;
+
+  /** Infers the output type of a Standard. */
+  export type InferOutput<Schema extends StandardTypedV1> =
+    StandardTypedV1.InferOutput<Schema>;
+}
 ```
-
-You can test this out with the cURL program:
-```sh
-curl -I -H'Accept: text/html' http://localhost:3000/
-```
-
-## License
-
-[MIT](LICENSE)
-
-[coveralls-image]: https://badgen.net/coveralls/c/github/jshttp/accepts/master
-[coveralls-url]: https://coveralls.io/r/jshttp/accepts?branch=master
-[github-actions-ci-image]: https://badgen.net/github/checks/jshttp/accepts/master?label=ci
-[github-actions-ci-url]: https://github.com/jshttp/accepts/actions/workflows/ci.yml
-[node-version-image]: https://badgen.net/npm/node/accepts
-[node-version-url]: https://nodejs.org/en/download
-[npm-downloads-image]: https://badgen.net/npm/dm/accepts
-[npm-url]: https://npmjs.org/package/accepts
-[npm-version-image]: https://badgen.net/npm/v/accepts
